@@ -34,7 +34,7 @@ export default function MessageList({ messages }: MessageListProps) {
     );
   }
 
-  console.log(messages.map(({ content }) => content))
+  messages.map(({ content }) => content).forEach((text) => console.log(text))
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-4">
