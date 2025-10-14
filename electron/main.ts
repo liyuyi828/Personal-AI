@@ -4,9 +4,35 @@ import isDev from 'electron-is-dev';
 import { ollamaClient, OllamaMessage } from './ollama-client';
 import { modelManager } from './model-manager';
 import { configManager } from './config-store';
+import { ollamaService } from './ollama-service';
+import { chatDatabase } from './chat-database';
 
 let mainWindow: BrowserWindow | null = null;
 const conversationHistory: OllamaMessage[] = [];
+
+// Initialize Ollama service
+async function initializeOllama() {
+  try {
+    console.log('Checking Ollama status...');
+    const isRunning = await ollamaService.isRunning();
+
+    if (!isRunning) {
+      console.log('Ollama is not running. Starting Ollama service...');
+      const result = await ollamaService.startService();
+
+      if (result.success) {
+        console.log('✓ Ollama started successfully');
+      } else {
+        console.error('✗ Failed to start Ollama:', result.message);
+        console.error('Please start Ollama manually by running: ollama serve');
+      }
+    } else {
+      console.log('✓ Ollama is already running');
+    }
+  } catch (error) {
+    console.error('Error initializing Ollama:', error);
+  }
+}
 
 // Initialize model on app startup
 async function initializeModel() {
@@ -71,6 +97,9 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
 
+  // Initialize Ollama service (start if not running)
+  await initializeOllama();
+
   // Initialize model on startup
   await initializeModel();
 
@@ -87,9 +116,26 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', () => {
+  // Note: We don't stop Ollama here because it might be used by other apps
+  // The user can manually stop it with: ollama stop
+  console.log('App is quitting. Ollama will continue running in the background.');
+});
+
 // IPC handlers
 ipcMain.handle('check-ollama-status', async () => {
   return await ollamaClient.checkStatus();
+});
+
+ipcMain.handle('start-ollama', async () => {
+  try {
+    console.log('Manual Ollama start requested');
+    const result = await ollamaService.startService();
+    return result;
+  } catch (error) {
+    console.error('Error starting Ollama:', error);
+    return { success: false, message: String(error) };
+  }
 });
 
 ipcMain.handle('send-message', async (_event, message: string) => {
@@ -228,6 +274,77 @@ ipcMain.handle('update-user-preferences', async (_event, preferences) => {
     return { success: true };
   } catch (error) {
     console.error('Error updating user preferences:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+// Chat history IPC handlers
+
+ipcMain.handle('create-chat-session', async (_event, name: string) => {
+  try {
+    const session = await chatDatabase.createChatSession(name);
+    return { success: true, session };
+  } catch (error) {
+    console.error('Error creating chat session:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle('get-all-chat-sessions', async () => {
+  try {
+    const sessions = await chatDatabase.getAllChatSessions();
+    return { success: true, sessions };
+  } catch (error) {
+    console.error('Error getting chat sessions:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle('get-chat-session-with-messages', async (_event, chatId: number) => {
+  try {
+    const session = await chatDatabase.getChatSessionWithMessages(chatId);
+    if (!session) {
+      return { success: false, error: 'Chat session not found' };
+    }
+    return { success: true, session };
+  } catch (error) {
+    console.error('Error getting chat session with messages:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle('add-chat-message', async (_event, chatId: number, role: 'user' | 'assistant', content: string) => {
+  try {
+    const message = await chatDatabase.addMessage(chatId, role, content);
+    return { success: true, message };
+  } catch (error) {
+    console.error('Error adding chat message:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle('update-chat-session-name', async (_event, chatId: number, name: string) => {
+  try {
+    const updated = await chatDatabase.updateChatSessionName(chatId, name);
+    if (!updated) {
+      return { success: false, error: 'Chat session not found' };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating chat session name:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle('delete-chat-session', async (_event, chatId: number) => {
+  try {
+    const deleted = await chatDatabase.deleteChatSession(chatId);
+    if (!deleted) {
+      return { success: false, error: 'Chat session not found' };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting chat session:', error);
     return { success: false, error: String(error) };
   }
 });

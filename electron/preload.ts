@@ -12,6 +12,7 @@ const electronAPI = {
     ipcRenderer.removeAllListeners('message-chunk');
   },
   checkOllamaStatus: () => ipcRenderer.invoke('check-ollama-status'),
+  startOllama: () => ipcRenderer.invoke('start-ollama'),
 
   // Model management APIs
   getAvailableModels: () => ipcRenderer.invoke('get-available-models'),
@@ -34,6 +35,16 @@ const electronAPI = {
   // User preferences APIs
   getUserPreferences: () => ipcRenderer.invoke('get-user-preferences'),
   updateUserPreferences: (preferences: any) => ipcRenderer.invoke('update-user-preferences', preferences),
+
+  // Chat history APIs
+  createChatSession: (name: string) => ipcRenderer.invoke('create-chat-session', name),
+  getAllChatSessions: () => ipcRenderer.invoke('get-all-chat-sessions'),
+  getChatSessionWithMessages: (chatId: number) => ipcRenderer.invoke('get-chat-session-with-messages', chatId),
+  addChatMessage: (chatId: number, role: 'user' | 'assistant', content: string) =>
+    ipcRenderer.invoke('add-chat-message', chatId, role, content),
+  updateChatSessionName: (chatId: number, name: string) =>
+    ipcRenderer.invoke('update-chat-session-name', chatId, name),
+  deleteChatSession: (chatId: number) => ipcRenderer.invoke('delete-chat-session', chatId),
 };
 
 // Expose the API to the renderer process

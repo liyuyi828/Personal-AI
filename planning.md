@@ -1,67 +1,83 @@
 # Personal AI - Project Planning
 
 ## Project Overview
-An Electron desktop application that connects to a local LLM (Qwen3 8B) served by Ollama, with a modern UI built using Next.js, TypeScript, and Tailwind CSS.
+An Electron desktop application that connects to local LLMs served by Ollama, with a modern UI built using Next.js, TypeScript, and Tailwind CSS. Features intelligent model selection with 12 curated models including the latest Qwen 3, Gemma 3, Llama 3.2, and Phi-3 models.
 
 ## Tech Stack
 
 ### Core Technologies
 - **Electron**: Desktop application framework
-- **Next.js**: React framework for the UI
+- **Next.js 15**: React framework for the UI
 - **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
+- **Tailwind CSS 4**: Utility-first CSS framework
 - **Ollama**: Local LLM server
-- **Qwen3 8B**: Language model
+- **electron-store**: Persistent configuration storage
+
+### Supported Models (2025)
+- **Qwen 3** (0.6B - 14B): Latest flagship models from Alibaba
+- **Gemma 3** (270M - 12B): Google's multimodal models
+- **Llama 3.2** (1B - 3B): Meta's efficient models
+- **Phi-3** (3.8B): Microsoft's coding-focused model
 
 ## Architecture
 
 ### Frontend (Renderer Process)
-- Next.js application with TypeScript
-- Tailwind CSS for styling
-- React components for chat interface
-- State management (React Context or Zustand)
+- Next.js 15 application with TypeScript
+- Tailwind CSS 4 for styling
+- React 19 components for chat interface
+- Custom hooks for state management (useModelSelection)
 
 ### Backend (Main Process)
-- Electron main process
-- IPC (Inter-Process Communication) bridge
-- Ollama API integration
-- File system access for conversation history
+- Electron main process with IPC handlers
+- Model Manager for Ollama model operations
+- Config Store for persistent settings
+- Ollama Client with streaming support
 
 ### Communication Flow
 ```
 User Interface (Next.js)
-    ↕ IPC
+    ↕ IPC (contextBridge)
 Electron Main Process
-    ↕ HTTP/REST
-Ollama Server (localhost:11434)
-    ↕
-Qwen3 8B Model
+    ├─ Model Manager
+    ├─ Config Store
+    └─ Ollama Client
+        ↕ HTTP/REST
+    Ollama Server (localhost:11434)
+        ↕
+    Selected LLM Model (Dynamic)
 ```
 
-## Key Features
+## Implemented Features ✅
 
-### Phase 1: Core Functionality
-- [ ] **Automatic Ollama detection and installation**
-- [ ] **Model Selection & Management** (See detailed plan below)
-  - Detect available models
-  - Allow user to select preferred model
-  - Persist model selection
-  - Display model recommendations with hardware requirements
-- [ ] Chat interface with message history
-- [ ] Connect to local Ollama instance
-- [ ] Send prompts and receive responses
-- [ ] Display streaming responses in real-time
-- [ ] Basic error handling
+### Phase 1: Core Functionality ✅ COMPLETE
+- ✅ **Model Selection & Management**
+  - ✅ Detect available models from Ollama
+  - ✅ 12 curated model recommendations with hardware specs
+  - ✅ Model selection dialog with categories (lightweight/balanced/powerful)
+  - ✅ Persist model selection with electron-store
+  - ✅ Display hardware requirements and performance estimates
+  - ✅ One-click model download with progress tracking
+  - ✅ Auto-select model on first launch
+- ✅ **Chat Interface**
+  - ✅ Real-time message streaming
+  - ✅ Message history display
+  - ✅ Modern UI with Tailwind CSS
+  - ✅ Model selector in header
+  - ✅ Connection status indicator
+- ✅ **Ollama Integration**
+  - ✅ Connect to local Ollama instance
+  - ✅ Send prompts and receive streaming responses
+  - ✅ Dynamic model switching
+  - ✅ Request/response logging for debugging
 
-### Phase 2: Enhanced Features
+### Phase 2: Enhanced Features (In Progress)
 - [ ] Conversation management (save/load/delete)
-- [ ] Model selection (if multiple models installed)
 - [ ] Settings panel (temperature, context length, etc.)
 - [ ] Copy/paste functionality
 - [ ] Code syntax highlighting
-- [ ] Markdown rendering
+- ✅ Markdown rendering (FormattedMessage component)
 
-### Phase 3: Advanced Features
+### Phase 3: Advanced Features (Planned)
 - [ ] System prompts customization
 - [ ] Export conversations
 - [ ] Search through conversation history
