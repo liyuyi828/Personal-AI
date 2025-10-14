@@ -6,6 +6,7 @@ import { modelManager } from './model-manager';
 import { configManager } from './config-store';
 import { ollamaService } from './ollama-service';
 import { chatDatabase } from './chat-database';
+import { exportService } from './export-service';
 
 let mainWindow: BrowserWindow | null = null;
 const conversationHistory: OllamaMessage[] = [];
@@ -345,6 +346,23 @@ ipcMain.handle('delete-chat-session', async (_event, chatId: number) => {
     return { success: true };
   } catch (error) {
     console.error('Error deleting chat session:', error);
+    return { success: false, error: String(error) };
+  }
+});
+
+ipcMain.handle('export-chat-to-pdf', async (_event, chatId: number) => {
+  try {
+    // Get chat session with messages
+    const session = await chatDatabase.getChatSessionWithMessages(chatId);
+    if (!session) {
+      return { success: false, error: 'Chat session not found' };
+    }
+
+    // Export to PDF
+    const result = await exportService.exportChatToPDF(session);
+    return result;
+  } catch (error) {
+    console.error('Error exporting chat to PDF:', error);
     return { success: false, error: String(error) };
   }
 });
