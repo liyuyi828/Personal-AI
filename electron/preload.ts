@@ -45,6 +45,7 @@ const electronAPI = {
   updateChatSessionName: (chatId: number, name: string) =>
     ipcRenderer.invoke('update-chat-session-name', chatId, name),
   deleteChatSession: (chatId: number) => ipcRenderer.invoke('delete-chat-session', chatId),
+  exportChatToPDF: (chatId: number) => ipcRenderer.invoke('export-chat-to-pdf', chatId),
 };
 
 // Expose the API to the renderer process
