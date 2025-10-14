@@ -60,3 +60,24 @@ export interface ModelPullProgress {
   total?: number;
   completed?: number;
 }
+
+// Chat history types
+export interface ChatMessage {
+  id: number;
+  chatId: number;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string; // ISO timestamp
+}
+
+export interface ChatSession {
+  id: number;
+  name: string;
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+  messageCount?: number;
+}
+
+export interface ChatSessionWithMessages extends ChatSession {
+  messages: ChatMessage[];
+}
